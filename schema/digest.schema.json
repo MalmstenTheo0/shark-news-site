@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shark News daily digest",
+  "description": "Contract between the Hermes agent (producer) and the site (consumer). CI rejects anything that does not match, so a malformed or tampered file never reaches the published site.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "date", "generated_at", "summary", "items"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "generated_at": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 40
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 800
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "summary", "url", "category", "source"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://",
+            "maxLength": 500
+          },
+          "category": {
+            "enum": ["ai", "dev", "devops", "cloud", "security"]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      }
+    }
+  }
+}

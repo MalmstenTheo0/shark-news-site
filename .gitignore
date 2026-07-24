@@ -1,0 +1,9 @@
+# Assembled by scripts/build.py — never committed
+_site/
+
+# Data-branch checkout created by CI during the build
+_data/
+
+# Note: real digests live at data/ on the `data` branch, where that directory
+# is legitimately tracked — so it is NOT ignored here. On `main` the path
+# simply does not exist; local development uses sample-data/ instead.

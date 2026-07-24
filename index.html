@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Novedades diarias en IA, desarrollo, DevOps, cloud y seguridad, curadas para el equipo de Shark.">
+<meta name="theme-color" id="theme-color" content="#f7fafb">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Shark News">
+<meta property="og:title" content="Shark News">
+<meta property="og:description" content="Novedades diarias en IA, desarrollo, DevOps, cloud y seguridad, curadas para el equipo de Shark.">
+
+<title>Shark News</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234a90ac'/><path d='M8 21c4-1 7-4 8-9 1 5 4 8 8 9-4 1-7 2-8 3-1-1-4-2-8-3z' fill='%23fff'/></svg>">
+<script src="assets/theme.js"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<div class="wrap">
+
+  <div class="utility">
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false">
+      <span id="theme-toggle-label">Modo oscuro</span>
+    </button>
+  </div>
+
+  <header class="masthead">
+    <h1>SHARK <em>NEWS</em></h1>
+    <p class="motto">Lo que el equipo necesita saber hoy — curado por Shark Agent</p>
+
+    <nav class="dateline" aria-label="Navegación entre ediciones">
+      <button type="button" id="prev-day" class="nav-btn" disabled>
+        <span aria-hidden="true">←</span> <span id="prev-label">Anterior</span>
+      </button>
+
+      <p class="edition">
+        <label class="visually-hidden" for="day-select">Elegir edición</label>
+        <select id="day-select"></select>
+      </p>
+
+      <button type="button" id="next-day" class="nav-btn" disabled>
+        <span id="next-label">Siguiente</span> <span aria-hidden="true">→</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="contenido">
+    <p id="status" class="status" role="status" aria-live="polite">Cargando la última edición…</p>
+
+    <section id="digest" aria-labelledby="digest-heading" hidden>
+      <h2 id="digest-heading" class="visually-hidden">Edición del día</h2>
+
+      <p id="digest-summary" class="summary"></p>
+
+      <div id="filters" class="filters" role="group" aria-label="Filtrar por categoría"></div>
+
+      <ol id="items" class="items"></ol>
+      <p id="no-matches" class="status" role="status" hidden>No hay noticias en esta categoría.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Generado automáticamente por <strong>Shark Agent</strong> · Cada noticia enlaza a su fuente original.</p>
+  </footer>
+
+</div>
+
+<noscript>
+  <div class="wrap"><p class="status">Este sitio necesita JavaScript para mostrar las ediciones.</p></div>
+</noscript>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
