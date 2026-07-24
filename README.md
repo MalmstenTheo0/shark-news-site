@@ -7,17 +7,18 @@ Experiment notes, the curation prompt and the agent setup live in the I+D repo u
 ## How it works
 
 ```
-Shark Agent ──push──▶ branch `data`  ─┐
-                                      ├─▶ CI validates + assembles ──▶ GitHub Pages
-site code   ────────▶ branch `main`  ─┘
+shark-news-data  ◀──push── Shark Agent   (deploy key lives here, and only here)
+       │
+       └──checkout──▶ CI in this repo: validate → assemble → GitHub Pages
+                              ▲
+                      site code (this repo)
 ```
 
-- **`data` branch** — nothing but `data/YYYY-MM-DD.json`, one file per day. This is the *only* branch the agent can write to, and it only ever adds files.
-- **`main` branch** — the site code, the schema and the workflow. Protected: the agent cannot push here, so it can never change what runs in a visitor's browser.
+- **[shark-news-data](https://github.com/MalmstenTheo0/shark-news-data)** — a separate repository holding nothing but `data/YYYY-MM-DD.json`, one file per day. The agent's deploy key grants write access **to that repository only**.
+- **This repo** — site code, schema and workflow. The agent holds no credential for it, so it cannot change what runs in a visitor's browser.
 - **CI** (`.github/workflows/publish.yml`) validates every digest against [`schema/digest.schema.json`](schema/digest.schema.json) and fails the run on any violation — a bad file never reaches the published site, which simply stays as it was.
-- **CI runs from `main` only** — on pushes to `main`, on a weekday schedule shortly after the agent's morning push, and manually via *Run workflow*. It is deliberately **not** push-triggered by the `data` branch: push-triggered workflows execute the workflow file of the pushed branch, so triggering on `data` would let a compromised agent rewrite its own CI. With the schedule, nothing the agent pushes can ever influence the pipeline.
 
-That split is deliberate: the agent reads untrusted content from the internet, so it is treated as an untrusted producer. Everything with consequences (what gets published, what code loads) sits behind a deterministic gate.
+Why two repositories rather than two branches: a GitHub deploy key is scoped to a repository **by design**, so repository separation is the platform's real security boundary. Branch-level protection is not — a write-enabled deploy key inherits repository-role bypass and can push to a protected branch anyway (we confirmed this in practice before switching). The agent reads untrusted content from the internet, so it is treated as an untrusted producer: everything with consequences sits behind a boundary it has no key for, plus a deterministic validation gate.
 
 ## The contract
 
@@ -58,11 +59,11 @@ Visual language borrowed from Smartory (the "Summer Ocean Breeze" palette), so S
 
 ## Local preview
 
-Point the build at any directory holding `YYYY-MM-DD.json` digests — typically a local checkout of the `data` branch:
+Point the build at any directory holding `YYYY-MM-DD.json` digests — typically a local clone of the data repo:
 
 ```bash
 python -m pip install jsonschema
-git worktree add ../shark-news-data data   # or: git clone -b data <repo> ../shark-news-data
+git clone https://github.com/MalmstenTheo0/shark-news-data.git ../shark-news-data
 python scripts/build.py --data ../shark-news-data/data --out _site
 python -m http.server 8765 -d _site
 ```
@@ -71,7 +72,7 @@ Then open `http://localhost:8765`. `fetch` needs a real server, so opening `inde
 
 `_site/` is throwaway build output — the assembled site, exactly what CI uploads to Pages. It is git-ignored; delete it any time and rebuild.
 
-`main` is code-only by design: real digests live at `data/` **on the `data` branch exclusively**, so agent output can never be mistaken for site code nor land on `main` by accident.
+This repository is code-only by design: digests live in [shark-news-data](https://github.com/MalmstenTheo0/shark-news-data), so agent output can never be mistaken for site code.
 
 ## First-time setup
 
@@ -87,28 +88,24 @@ git remote add origin git@github.com:<user>/shark-news-site.git
 git push -u origin main
 ```
 
-**2. Create the `data` branch as an orphan, empty:**
+**2. Create the companion data repository** (public, so CI can check it out without a token):
 
 ```bash
-git checkout --orphan data
-git rm -rf --cached . >/dev/null
-mkdir -p data && touch data/.gitkeep
-git add data/.gitkeep
-git commit -m "Create empty data branch"
-git push -u origin data
-git checkout main
-rm -rf data
+gh repo create shark-news-data --public --description "Daily digests published by Shark Agent"
 ```
 
-It starts empty on purpose: the site's history should contain only editions the agent actually produced. The first CI run publishes the page with an "aún no hay ediciones" state, and the first real edition appears when the cron fires.
+Seed it with an empty `data/` directory (a `.gitkeep` — the build ignores dotfiles). It starts empty on purpose: the site's history should contain only editions the agent actually produced. The first CI run publishes an "aún no hay ediciones" state, and the first real edition appears when the cron fires.
 
-**3. In the repo settings on GitHub:**
+**3. In THIS repo's settings:**
 
 - **Pages** → Source: **GitHub Actions**.
-- **Branches** → protect `main`: block force pushes and restrict who can push (the agent's key must not be able to).
-- **Deploy keys** → add the agent's public key **with write access**. It is repo-scoped by design, so a leak cannot reach anything else.
+- **Deploy keys** → none. The agent must have no credential here.
 
-**4. Give the agent the deploy key** and point it at the `data` branch. It clones, adds today's file, commits and pushes — nothing else.
+**4. In the DATA repo's settings:**
+
+- **Deploy keys** → add the agent's public key **with write access**. Being repo-scoped, it cannot reach the site code.
+
+> Do not try to solve this with a protected branch in a single repo instead. A write-enabled deploy key inherits repository-role bypass and pushes straight through a ruleset — verified in practice. Repository separation is the boundary GitHub actually enforces.
 
 ## Security notes
 

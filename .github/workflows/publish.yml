@@ -1,13 +1,16 @@
 name: Publish Shark News
 
-# Site code comes from `main`; digests come from `data` (the only branch the
-# agent can push to). The build validates every digest before anything is
-# deployed — a bad file fails the run and leaves the live site untouched.
+# Site code lives here; digests live in the separate shark-news-data repo, the
+# only place the agent holds credentials for. A GitHub deploy key is scoped to
+# one repository by design, so the agent simply cannot reach this repo — that
+# is the security boundary, not a rule that could be bypassed.
 #
-# Deliberately NOT triggered by pushes to `data`: push-triggered workflows run
-# the workflow file of the pushed branch, so a compromised agent could edit its
-# own CI. Instead this file lives only on `main` (which the agent cannot touch)
-# and publishes on a schedule shortly after the agent's daily 09:00 ART run,
+# The build validates every digest before anything is deployed: a bad file
+# fails the run and leaves the live site untouched.
+#
+# The data repo cannot trigger this workflow (cross-repo triggering would need
+# a token in the agent's hands, reintroducing the very problem we removed), so
+# publishing runs on a schedule shortly after the agent's daily 09:00 ART push,
 # plus manually via workflow_dispatch whenever needed.
 
 on:
@@ -38,7 +41,7 @@ jobs:
       - name: Check out digests
         uses: actions/checkout@v4
         with:
-          ref: data
+          repository: MalmstenTheo0/shark-news-data
           path: _data
 
       - uses: actions/setup-python@v5
