@@ -15,6 +15,7 @@ site code   ────────▶ branch `main`  ─┘
 - **`data` branch** — nothing but `data/YYYY-MM-DD.json`, one file per day. This is the *only* branch the agent can write to, and it only ever adds files.
 - **`main` branch** — the site code, the schema and the workflow. Protected: the agent cannot push here, so it can never change what runs in a visitor's browser.
 - **CI** (`.github/workflows/publish.yml`) validates every digest against [`schema/digest.schema.json`](schema/digest.schema.json) and fails the run on any violation — a bad file never reaches the published site, which simply stays as it was.
+- **CI runs from `main` only** — on pushes to `main`, on a weekday schedule shortly after the agent's morning push, and manually via *Run workflow*. It is deliberately **not** push-triggered by the `data` branch: push-triggered workflows execute the workflow file of the pushed branch, so triggering on `data` would let a compromised agent rewrite its own CI. With the schedule, nothing the agent pushes can ever influence the pipeline.
 
 That split is deliberate: the agent reads untrusted content from the internet, so it is treated as an untrusted producer. Everything with consequences (what gets published, what code loads) sits behind a deterministic gate.
 
@@ -99,7 +100,7 @@ git checkout main
 rm -rf data
 ```
 
-It starts empty on purpose: the site's history should contain only editions the agent actually produced. The first CI run publishes the page with an "aún no hay ediciones" state, and the first real edition appears when the cron fires. (`sample-data/` is never copied here — those files exist only for local development.)
+It starts empty on purpose: the site's history should contain only editions the agent actually produced. The first CI run publishes the page with an "aún no hay ediciones" state, and the first real edition appears when the cron fires.
 
 **3. In the repo settings on GitHub:**
 
